@@ -37,16 +37,19 @@ decode(Data, Secret) when is_binary(Data) ->
                 ExpirationPayload = proplists:get_value(<<"exp">>, jsx:decode(Payload), noexp),
                 Jwt = #jwt{typ=Type, body=Payload, alg=Algorithm,
                            sig=Signature, actual_sig=ActualSignature},
-                error_logger:info_msg("**************************************************"),
-                error_logger:info_msg("ExpirationPayload: ~p", [ExpirationPayload]),
+                logger:error("**************************************************"),
+                logger:error("ExpirationPayload: ~p", [ExpirationPayload]),
+                %error_logger:info_msg("**************************************************"),
+                %error_logger:info_msg("ExpirationPayload: ~p", [ExpirationPayload]),
                 if
                     Signature =:= ActualSignature ->
                         % TODO: leeway
                         NowSecs = now_secs(),
-                        error_logger:info_msg("NowSecs: ~p", [NowSecs]),
+                        %error_logger:info_msg("NowSecs: ~p", [NowSecs]),
+                        logger:error("NowSecs: ~p", [NowSecs]),
                         if
                             ExpirationPayload == noexp orelse ExpirationPayload > NowSecs ->
-                                {ok, Jwt};
+                                {ok, Jwt, ExpirationPayload, NowSecs};
                             true ->
                                 {error, {expired, ExpirationPayload}}
                         end;
