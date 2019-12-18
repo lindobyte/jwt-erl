@@ -5,3 +5,5 @@ logs
 .erlang.mk
 test/*.beam
 jwt.d
+_build
+rebar.lock
