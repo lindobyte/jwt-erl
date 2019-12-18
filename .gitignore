@@ -6,3 +6,4 @@ logs
 test/*.beam
 jwt.d
 _build
+rebar.lock
