@@ -1,5 +1,5 @@
 {application, jwt, [
-	{description, "JWT library"},
+	{description, ""},
 	{vsn, "0.1.0"},
 	{modules, []},
 	{registered, []},
