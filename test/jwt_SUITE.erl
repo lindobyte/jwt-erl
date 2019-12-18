@@ -8,7 +8,7 @@ all() ->
      decode_bad_token, decode_bad_token_3_parts, decode_bad_sig,
      decode_expired].
 
-init_per_suite(Config) -> 
+init_per_suite(Config) ->
     Config.
 
 check_encode_decode(Algorithm) ->
@@ -57,11 +57,17 @@ decode_bad_token(_) ->
     {error, badtoken} = jwt:decode(<<"asd">>, <<"secret">>).
 
 decode_bad_token_3_parts(_) ->
-    {error, badarg} = jwt:decode(<<"asd.dsa.lala">>, <<"secret">>),
-    {error, {badmatch, false}} = jwt:decode(<<"a.b.c">>, <<"secret">>).
+    {error, badarg} = jwt:decode(<<"asd.dsa.lala">>, <<"secret">>).
+    %{error, badarg} = jwt:decode(<<"a.b.c">>, <<"secret">>).
+
+decode_expired_ok(_) ->
+    Expiration = jwt:now_secs() + 10,
+    {ok, Jwt} = jwt:encode(hs256, [{name, <<"bob">>}, {age, 29}, {exp, Expiration}],
+                           <<"secret">>),
+    {error, {expired, Expiration}} = jwt:decode(Jwt, <<"secret">>).
 
 decode_expired(_) ->
     Expiration = jwt:now_secs() - 10,
-    {ok, Jwt} = jwt:encode(hs256, [{name, <<"bob">>}, {age, 29}],
-                           <<"secret">>, [{exp, Expiration}]),
+    {ok, Jwt} = jwt:encode(hs256, [{name, <<"bob">>}, {age, 29}, {exp, Expiration}],
+                           <<"secret">>),
     {error, {expired, Expiration}} = jwt:decode(Jwt, <<"secret">>).

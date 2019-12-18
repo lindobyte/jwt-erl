@@ -28,13 +28,13 @@ decode(Data, Secret) when is_binary(Data) ->
                 Header = jsx:decode(base64url:decode(HeaderEncoded)),
                 Type = proplists:get_value(<<"typ">>, Header),
                 AlgorithmStr = proplists:get_value(<<"alg">>, Header),
-                Expiration = proplists:get_value(<<"exp">>, Header, noexp),
                 Algorithm = algorithm_to_atom(AlgorithmStr),
                 DataEncoded = <<HeaderEncoded/binary, $.,
                                 PayloadEncoded/binary>>,
                 ActualSignature = get_signature(Algorithm, DataEncoded, Secret),
                 Signature = base64url:decode(SignatureEncoded),
                 Payload = base64url:decode(PayloadEncoded),
+                ExpirationPayload = proplists:get_value(<<"exp">>, jsx:decode(Payload), noexp),
                 Jwt = #jwt{typ=Type, body=Payload, alg=Algorithm,
                            sig=Signature, actual_sig=ActualSignature},
                 if
@@ -42,10 +42,10 @@ decode(Data, Secret) when is_binary(Data) ->
                         % TODO: leeway
                         NowSecs = now_secs(),
                         if
-                            Expiration == noexp orelse Expiration > NowSecs ->
+                            ExpirationPayload == noexp orelse ExpirationPayload > NowSecs ->
                                 {ok, Jwt};
                             true ->
-                                {error, {expired, Expiration}}
+                                {error, {expired, ExpirationPayload}}
                         end;
                     true ->
                         {error, {badsig, Jwt}}
@@ -79,5 +79,4 @@ get_signature(Algorithm, Data, Secret) ->
     crypto:hmac(CryptoAlg, Secret, Data).
 
 now_secs() ->
-    {MegaSecs, Secs, _MicroSecs} = os:timestamp(),
-    (MegaSecs * 1000000 + Secs).
+    os:system_time(seconds).
