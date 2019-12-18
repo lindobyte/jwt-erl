@@ -6,7 +6,7 @@
 all() ->
     [encode_decode, decode_with_bad_secret, decode_empty_token,
      decode_bad_token, decode_bad_token_3_parts, decode_bad_sig,
-     decode_expired].
+     decode_expired_ok, decode_expired, decode_expired2].
 
 init_per_suite(Config) ->
     Config.
@@ -64,10 +64,21 @@ decode_expired_ok(_) ->
     Expiration = jwt:now_secs() + 10,
     {ok, Jwt} = jwt:encode(hs256, [{name, <<"bob">>}, {age, 29}, {exp, Expiration}],
                            <<"secret">>),
-    {error, {expired, Expiration}} = jwt:decode(Jwt, <<"secret">>).
+    {ok, _} = jwt:decode(Jwt, <<"secret">>).
 
 decode_expired(_) ->
     Expiration = jwt:now_secs() - 10,
     {ok, Jwt} = jwt:encode(hs256, [{name, <<"bob">>}, {age, 29}, {exp, Expiration}],
                            <<"secret">>),
     {error, {expired, Expiration}} = jwt:decode(Jwt, <<"secret">>).
+
+decode_expired2(_) ->
+    Expiration = 1569848806,
+    %{ok, Jwt} = jwt:encode(hs256, [{cabin, <<"1000">>},
+    %                               {exp, Expiration},
+    %                               {iat, 1569848706},
+    %                               {iss, "fromIss"},
+    %                               {permissions, "permissions"},
+    %                               {serial, "serial"}],
+    %                       <<"secret">>),
+    {error, {expired, Expiration}} = jwt:decode(<<"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXUyJ9.eyJjYWJpbiI6IjEwMDAiLCJleHAiOjE1Njk4NDg4MDYsImlhdCI6MTU2OTg0ODcwNiwiaXNzIjoiR3NJbmZvY29uIiwicGVybWlzc2lvbnMiOlsicm9vbUNvbnRyb2wiXSwic2VyaWFsIjoiaGFzaG92ZXJ1aWRzIn0.kMYlIMCUqkUhf1lZQksZMoGOeeHu-Y6rjXPt3HRmfts">>, <<"coolSecret">>).
