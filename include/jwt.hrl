@@ -1,4 +1,12 @@
--record(jwt, {typ, % Type
+-record(jwt, {exp, % Expiration Time
+              nbf, % Not Before
+              iat, % Issued At
+              iss, % Issuer
+              aud, % Audience
+              prn, % Principal
+              jti, % JWT ID
+              typ, % Type
+              enc, % encryption method
               body, % RawBody
               alg, % Algorithm
               sig, % signature got from JWT
